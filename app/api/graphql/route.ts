@@ -1,9 +1,22 @@
 import { readFileSync } from "fs";
 import { join } from "path";
+import type { Company, PrismaClient } from "@prisma/client";
 import { createSchema, createYoga } from "graphql-yoga";
 import { NextRequest, NextResponse } from "next/server";
 
-import { Resolvers } from "@/gql/types";
+import type { Resolvers } from "@/gql/types";
+
+import prisma from "@/lib/prisma";
+
+export type GraphQLContext = {
+  prisma: PrismaClient;
+};
+
+export async function createContext(): Promise<GraphQLContext> {
+  return {
+    prisma,
+  };
+}
 
 const typeDefs = readFileSync(join(process.cwd(), "schema.graphql"), {
   encoding: "utf-8",
@@ -12,6 +25,16 @@ const typeDefs = readFileSync(join(process.cwd(), "schema.graphql"), {
 const resolvers: Resolvers = {
   Query: {
     greeting: () => "Hello World",
+    jobs: async (_, {}, { prisma }) => await prisma.job.findMany(),
+  },
+  Job: {
+    date: ({ createdAt }) => createdAt.toISOString(),
+    company: async ({ companyId }, {}, { prisma }) => {
+      const company = await prisma.company.findUnique({
+        where: { id: companyId },
+      });
+      return company as Company;
+    },
   },
 };
 
@@ -27,6 +50,7 @@ const { handleRequest } = createYoga({
     Request: NextRequest,
     Response: NextResponse,
   },
+  context: createContext(),
 });
 
 export { handleRequest as GET, handleRequest as POST };

@@ -7,6 +7,15 @@ const config: CodegenConfig = {
   ignoreNoDocuments: true,
   generates: {
     "gql/types.ts": {
+      config: {
+        mapperTypeSuffix: "Modal",
+        mappers: {
+          Company: "@prisma/client#Company",
+          Job: "@prisma/client#Job",
+          User: "@prisma/client#User",
+        },
+        contextType: "../app/api/graphql/route#GraphQLContext",
+      },
       plugins: ["typescript", "typescript-resolvers"],
     },
     "gql/": {
