@@ -1,0 +1,23 @@
+version: "3.1"
+services:
+  job_board_db:
+    image: postgres
+    container_name: job_board_db
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: job_board
+    volumes:
+      - job_board_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  job_board_adminer:
+    image: adminer
+    container_name: job_board_adminer
+    restart: always
+    ports:
+      - 8080:8080
+
+volumes:
+  job_board_data:
