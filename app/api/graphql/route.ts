@@ -40,6 +40,10 @@ const resolvers: Resolvers = {
       return company as Company;
     },
   },
+  Company: {
+    jobs: async ({ id }, {}, { prisma }) =>
+      await prisma.job.findMany({ where: { companyId: id } }),
+  },
 };
 
 const schema = createSchema({

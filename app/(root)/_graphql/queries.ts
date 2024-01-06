@@ -40,6 +40,12 @@ const getCompanyById = graphql(/* GraphQL */ `
       id
       name
       description
+      jobs {
+        id
+        date
+        description
+        title
+      }
     }
   }
 `);
