@@ -2,6 +2,7 @@ type Query {
   greeting: String
   jobs: [Job!]
   job(id: ID!): Job
+  company(id: ID!): Company
 }
 
 """

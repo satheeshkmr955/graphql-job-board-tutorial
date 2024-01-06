@@ -33,3 +33,13 @@ const getJobById = graphql(/* GraphQL */ `
     }
   }
 `);
+
+const getCompanyById = graphql(/* GraphQL */ `
+  query Company($id: ID!) {
+    company(id: $id) {
+      id
+      name
+      description
+    }
+  }
+`);
