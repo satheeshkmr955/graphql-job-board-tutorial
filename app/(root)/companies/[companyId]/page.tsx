@@ -10,7 +10,13 @@ const CompanyIdPage = () => {
   const params = useParams<{ companyId: string }>();
   const { companyId } = params;
 
-  const { data, isLoading } = useGraphQL(CompanyDocument, { id: companyId });
+  const { data, isLoading } = useGraphQL(CompanyDocument, {
+    id: companyId,
+  });
+
+  if (!isLoading && data?.errors) {
+    return data.errors[0].message;
+  }
 
   return (
     <>

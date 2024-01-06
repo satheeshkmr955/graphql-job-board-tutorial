@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type { Resolvers } from "@/gql/types";
 
 import prisma from "@/lib/prisma";
+import { NotFoundError } from "@/lib/errors";
 
 export type GraphQLContext = {
   prisma: PrismaClient;
@@ -26,10 +27,24 @@ const resolvers: Resolvers = {
   Query: {
     greeting: () => "Hello World",
     jobs: async (_, {}, { prisma }) => await prisma.job.findMany(),
-    job: async (_, { id }, { prisma }) =>
-      await prisma.job.findUnique({ where: { id } }),
-    company: async (_, { id }, { prisma }) =>
-      await prisma.company.findUnique({ where: { id } }),
+    job: async (_, { id }, { prisma }) => {
+      const job = await prisma.job.findUnique({ where: { id } });
+
+      if (!job) {
+        throw NotFoundError(`No Job found with id ${id}`);
+      }
+
+      return job;
+    },
+    company: async (_, { id }, { prisma }) => {
+      const company = await prisma.company.findUnique({ where: { id } });
+
+      if (!company) {
+        throw NotFoundError(`No Company found with id ${id}`);
+      }
+
+      return company;
+    },
   },
   Job: {
     date: ({ createdAt }) => createdAt.toISOString(),
