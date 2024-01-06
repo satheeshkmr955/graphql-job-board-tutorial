@@ -26,6 +26,9 @@ const resolvers: Resolvers = {
   Query: {
     greeting: () => "Hello World",
     jobs: async (_, {}, { prisma }) => await prisma.job.findMany(),
+    job: async (_, { id }, { prisma }) => {
+      return await prisma.job.findUnique({ where: { id } });
+    },
   },
   Job: {
     date: ({ createdAt }) => createdAt.toISOString(),

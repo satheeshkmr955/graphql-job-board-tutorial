@@ -1,6 +1,6 @@
 type FormateDateProps = {
   dateStr: string;
-  style?: string;
+  style?: "long" | "medium";
 };
 
 export const formatDate = (obj: FormateDateProps) => {
