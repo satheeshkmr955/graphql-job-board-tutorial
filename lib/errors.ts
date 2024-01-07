@@ -5,3 +5,9 @@ export const NotFoundError = (message: string) => {
     extensions: { code: "NOT_FOUND" },
   });
 };
+
+export const InvalidInputError = (message: string) => {
+  return new GraphQLError(message, {
+    extensions: { code: "INVALID_INPUT" },
+  });
+};

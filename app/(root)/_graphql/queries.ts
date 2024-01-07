@@ -49,3 +49,11 @@ const getCompanyById = graphql(/* GraphQL */ `
     }
   }
 `);
+
+const createJob = graphql(/* GraphQL */ `
+  mutation CreateJob($input: CreateJobInput!) {
+    job: createJob(input: $input) {
+      id
+    }
+  }
+`);

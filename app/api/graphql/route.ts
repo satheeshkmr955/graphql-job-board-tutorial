@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type { Resolvers } from "@/gql/types";
 
 import prisma from "@/lib/prisma";
-import { NotFoundError } from "@/lib/errors";
+import { InvalidInputError, NotFoundError } from "@/lib/errors";
 
 export type GraphQLContext = {
   prisma: PrismaClient;
@@ -44,6 +44,23 @@ const resolvers: Resolvers = {
       }
 
       return company;
+    },
+  },
+  Mutation: {
+    createJob: async (_, { input }, { prisma }) => {
+      const { title, description } = input;
+
+      if (!title || !description) {
+        throw InvalidInputError("Please add valid title and description");
+      }
+
+      const companyId = "FjcJCHJALA4i";
+
+      const job = await prisma.job.create({
+        data: { description, title, companyId },
+      });
+
+      return job;
     },
   },
   Job: {

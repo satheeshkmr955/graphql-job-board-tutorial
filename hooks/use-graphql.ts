@@ -1,13 +1,19 @@
 import { print, type ExecutionResult } from "graphql";
 import { type TypedDocumentNode } from "@graphql-typed-document-node/core";
-import { useQuery, type UseQueryResult } from "@tanstack/react-query";
+import {
+  useQuery,
+  type UseQueryResult,
+  useMutation,
+  type UseMutationResult,
+  UseMutationOptions,
+} from "@tanstack/react-query";
 
 import { axiosGraphQL } from "@/lib/fetcher";
 
 /** Your custom fetcher function */
 async function customFetcher<TResult, TVariables>(
   document: TypedDocumentNode<TResult, TVariables>,
-  ...[variables]: TVariables extends Record<string, never> ? [] : [TVariables]
+  variables: TVariables extends Record<string, never> ? {} : TVariables
 ): Promise<TResult> {
   const responseAxios = await axiosGraphQL({
     data: {
@@ -27,10 +33,22 @@ async function customFetcher<TResult, TVariables>(
 
 export function useGraphQL<TResult, TVariables>(
   document: TypedDocumentNode<TResult, TVariables>,
-  ...[variables]: TVariables extends Record<string, never> ? [] : [TVariables]
+  variables: TVariables extends Record<string, never> ? {} : TVariables
 ): UseQueryResult<ExecutionResult<TResult>> {
   return useQuery({
     queryKey: [(document.definitions[0] as any).name.value, variables],
     queryFn: () => customFetcher(document, variables),
+  });
+}
+
+export function useMutationGraphQL<TResult, TVariables>(
+  document: TypedDocumentNode<TResult, TVariables>,
+  variables: TVariables extends Record<string, never> ? {} : TVariables,
+  mutateOptions?: UseMutationOptions
+): UseMutationResult<ExecutionResult<TResult>> {
+  return useMutation({
+    mutationKey: [(document.definitions[0] as any).name.value, variables],
+    mutationFn: () => customFetcher(document, variables),
+    ...mutateOptions,
   });
 }
