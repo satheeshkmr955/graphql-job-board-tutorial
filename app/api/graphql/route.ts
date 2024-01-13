@@ -62,6 +62,46 @@ const resolvers: Resolvers = {
 
       return job;
     },
+    updateJob: async (_, { input }, { prisma }) => {
+      const { description = null, title = null, id = null } = input;
+
+      if (id === null) {
+        throw InvalidInputError("Please add valid id");
+      }
+
+      const isJobExists = await prisma.job.findUnique({ where: { id } });
+
+      if (!isJobExists) {
+        throw NotFoundError(`No Job found with id ${id}`);
+      }
+
+      const job = await prisma.job.update({
+        where: { id },
+        data: {
+          description: description ? description : isJobExists.description,
+          title: title ? title : isJobExists.title,
+        },
+      });
+
+      return job;
+    },
+    deleteJob: async (_, { input }, { prisma }) => {
+      const { id = null } = input;
+
+      if (id === null) {
+        throw InvalidInputError("Please add valid id");
+      }
+
+      const isJobExists = await prisma.job.findUnique({ where: { id } });
+
+      if (!isJobExists) {
+        throw NotFoundError(`No Job found with id ${id}`);
+      }
+
+      await prisma.job.delete({ where: { id } });
+
+      return isJobExists;
+    },
   },
   Job: {
     date: ({ createdAt }) => createdAt.toISOString(),

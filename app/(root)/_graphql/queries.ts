@@ -57,3 +57,23 @@ const createJob = graphql(/* GraphQL */ `
     }
   }
 `);
+
+const updateJob = graphql(/* GraphQL */ `
+  mutation UpdateJob($input: UpdateJobInput!) {
+    updateJob(input: $input) {
+      id
+      title
+      description
+    }
+  }
+`);
+
+const deleteJob = graphql(/* GraphQL */ `
+  mutation DeleteJob($input: DeleteJobInput!) {
+    deleteJob(input: $input) {
+      id
+      title
+      description
+    }
+  }
+`);
