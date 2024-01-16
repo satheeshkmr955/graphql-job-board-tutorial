@@ -1,6 +1,5 @@
 import Link from "next/link";
-
-import { logout } from "@/lib/auth";
+import { signOut } from "next-auth/react";
 
 type NavBarProps = {
   user: any;
@@ -11,7 +10,7 @@ export const NavBar = (props: NavBarProps) => {
   const { user, onLogout } = props;
 
   const handleLogout = () => {
-    logout();
+    signOut();
     onLogout();
   };
 

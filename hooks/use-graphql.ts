@@ -33,7 +33,7 @@ async function customFetcher<TResult, TVariables>(
 
 export function useGraphQL<TResult, TVariables>(
   document: TypedDocumentNode<TResult, TVariables>,
-  variables: TVariables extends Record<string, never> ? {} : TVariables
+  variables?: TVariables extends Record<string, never> ? {} : TVariables
 ): UseQueryResult<ExecutionResult<TResult>> {
   return useQuery({
     queryKey: [(document.definitions[0] as any).name.value, variables],

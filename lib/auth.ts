@@ -1,58 +1,71 @@
-// Disclaimer: This example keeps the access token in LocalStorage just because
-// it's simpler, but in a real application you may want to use cookies instead
-// for better security. Also, it doesn't handle token expiration.
-import jwtDecode from "jwt-decode";
+import bcrypt from "bcryptjs";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { PrismaAdapter } from "@auth/prisma-adapter";
 
-const API_URL = "http://localhost:3000";
+import type { NextAuthOptions } from "next-auth";
+import type { Adapter } from "next-auth/adapters";
 
-const ACCESS_TOKEN_KEY = "accessToken";
+import { db } from "@/lib/db";
 
-export const getAccessToken = () => {
-  return localStorage.getItem(ACCESS_TOKEN_KEY);
-};
+export const authConfigOptions = {
+  adapter: PrismaAdapter(db) as Adapter,
+  providers: [
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        email: {
+          label: "Email",
+          type: "text",
+          placeholder: "john@example.com",
+          required: true,
+        },
+        password: {
+          label: "Password",
+          type: "password",
+          required: true,
+        },
+      },
+      async authorize(credentials) {
+        try {
+          const { email, password } = credentials!;
 
-type LoginArgs = {
-  email: string;
-  password: string;
-};
+          const user = await db.user.findUnique({ where: { email } });
 
-export const login = async (obj: LoginArgs) => {
-  const { email, password } = obj;
+          if (!user) {
+            return null;
+          }
 
-  const response = await fetch(`${API_URL}/login`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
+          const passwordsMatch = await bcrypt.compare(
+            password,
+            user.password || ""
+          );
+
+          if (!passwordsMatch) {
+            return null;
+          }
+
+          return user;
+        } catch (error) {
+          console.error(error);
+          return null;
+        }
+      },
+    }),
+  ],
+  secret: process.env.NEXTAUTH_SECRET,
+  session: {
+    // Set to jwt, when Credentials provided is used, then only user will be authenticated
+    strategy: "jwt",
+  },
+  jwt: {
+    maxAge: 60 * 60 * 24 * 1,
+  },
+  callbacks: {
+    async jwt({ token }) {
+      return token;
     },
-    body: JSON.stringify({ email, password }),
-  });
-
-  if (!response.ok) {
-    return null;
-  }
-
-  const { token } = await response.json();
-
-  localStorage.setItem(ACCESS_TOKEN_KEY, token);
-  return getUserFromToken(token);
-};
-
-export const getUser = () => {
-  const token = getAccessToken();
-  if (!token) {
-    return null;
-  }
-  return getUserFromToken(token);
-};
-
-export const logout = () => {
-  localStorage.removeItem(ACCESS_TOKEN_KEY);
-};
-
-const getUserFromToken = (token: string) => {
-  const claims = jwtDecode(token);
-  return {
-    id: claims.sub,
-    email: claims.email,
-  };
-};
+    async session({ session }) {
+      return session;
+    },
+  },
+} satisfies NextAuthOptions;
