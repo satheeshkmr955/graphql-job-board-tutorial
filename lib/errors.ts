@@ -11,3 +11,15 @@ export const InvalidInputError = (message: string) => {
     extensions: { code: "INVALID_INPUT" },
   });
 };
+
+export const InvalidTokenError = (message: string) => {
+  return new GraphQLError(message, {
+    extensions: { code: "INVALID_TOKEN" },
+  });
+};
+
+export const UserNotFoundError = (message: string) => {
+  return new GraphQLError(message, {
+    extensions: { code: "USER_NOT_FOUND" },
+  });
+};

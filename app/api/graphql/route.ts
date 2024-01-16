@@ -1,20 +1,34 @@
 import { readFileSync } from "fs";
 import { join } from "path";
-import type { Company, PrismaClient } from "@prisma/client";
 import { createSchema, createYoga } from "graphql-yoga";
 import { NextRequest, NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
+
+import type { Company, PrismaClient } from "@prisma/client";
 
 import type { Resolvers } from "@/gql/types";
 
 import { db } from "@/lib/db";
-import { InvalidInputError, NotFoundError } from "@/lib/errors";
+import {
+  InvalidInputError,
+  InvalidTokenError,
+  NotFoundError,
+  UserNotFoundError,
+} from "@/lib/errors";
 
-export type GraphQLContext = {
-  db: PrismaClient;
+export type ContextType = {
+  request: NextRequest;
 };
 
-export async function createContext(): Promise<GraphQLContext> {
+export interface GraphQLContext extends ContextType {
+  db: PrismaClient;
+}
+
+export async function createContext(
+  defaultContext: ContextType
+): Promise<GraphQLContext> {
   return {
+    ...defaultContext,
     db,
   };
 }
@@ -47,17 +61,34 @@ const resolvers: Resolvers = {
     },
   },
   Mutation: {
-    createJob: async (_, { input }, { db }) => {
+    createJob: async (_, { input }, { db, request }) => {
       const { title, description } = input;
+
+      const token = await getToken({ req: request });
+
+      if (!token) {
+        throw InvalidTokenError("Please add valid token");
+      }
+
+      const user = await db.user.findUnique({
+        where: {
+          email: token.email!,
+        },
+        select: {
+          companyId: true,
+        },
+      });
+
+      if (!user) {
+        throw UserNotFoundError("User not found");
+      }
 
       if (!title || !description) {
         throw InvalidInputError("Please add valid title and description");
       }
 
-      const companyId = "FjcJCHJALA4i";
-
       const job = await db.job.create({
-        data: { description, title, companyId },
+        data: { description, title, companyId: user.companyId },
       });
 
       return job;
@@ -130,7 +161,7 @@ const { handleRequest } = createYoga({
     Request: NextRequest,
     Response: NextResponse,
   },
-  context: createContext(),
+  context: createContext,
 });
 
 export { handleRequest as GET, handleRequest as POST };
