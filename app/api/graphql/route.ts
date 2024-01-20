@@ -3,6 +3,9 @@ import { join } from "path";
 import { createSchema, createYoga } from "graphql-yoga";
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { useResponseCache } from "@envelop/response-cache";
+import { createRedisCache } from "@envelop/response-cache-redis";
+import Redis from "ioredis";
 
 import type { Company, PrismaClient, User } from "@prisma/client";
 
@@ -170,6 +173,9 @@ const schema = createSchema({
   resolvers: resolvers,
 });
 
+const redis = new Redis(process.env.REDIS_URL!);
+const cache = createRedisCache({ redis });
+
 const { handleRequest } = createYoga({
   graphqlEndpoint: "/api/graphql",
   schema,
@@ -178,6 +184,14 @@ const { handleRequest } = createYoga({
     Response: NextResponse,
   },
   context: createContext,
+  plugins: [
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useResponseCache({
+      cache,
+      session: () => null,
+      // ttl: 1000 * 60 * 60 * 1,
+    }),
+  ],
 });
 
 export { handleRequest as GET, handleRequest as POST };

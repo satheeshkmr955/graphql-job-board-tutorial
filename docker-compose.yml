@@ -19,5 +19,24 @@ services:
     ports:
       - 8080:8080
 
+  job_board_redis:
+    image: redislabs/redismod
+    container_name: job_board_redis
+    restart: always
+    ports:
+      - 6380:6379
+    volumes:
+      - redis_db:/db
+
+  job_board_redisinsight:
+    image: oblakstudio/redisinsight
+    container_name: job_board_redisinsight
+    restart: always
+    ports:
+      - "8006:5000"
+    volumes:
+      - redis_db:/db
+
 volumes:
   job_board_data:
+  redis_db:
