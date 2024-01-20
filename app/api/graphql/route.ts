@@ -1,8 +1,10 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import { readFileSync } from "fs";
 import { join } from "path";
 import { createSchema, createYoga } from "graphql-yoga";
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
+// import { useLogger } from "@envelop/core";
 import { useResponseCache } from "@envelop/response-cache";
 import { createRedisCache } from "@envelop/response-cache-redis";
 import Redis from "ioredis";
@@ -12,9 +14,9 @@ import type { Company, PrismaClient, User } from "@prisma/client";
 import type { Resolvers } from "@/gql/types";
 
 import { db } from "@/lib/db";
+import { logger } from "@/lib/logger";
 import {
   InvalidInputError,
-  InvalidTokenError,
   NotFoundError,
   UserNotFoundError,
 } from "@/lib/errors";
@@ -179,13 +181,31 @@ const cache = createRedisCache({ redis });
 const { handleRequest } = createYoga({
   graphqlEndpoint: "/api/graphql",
   schema,
+  logging: {
+    debug(...args) {
+      logger.debug(args);
+    },
+    info(...args) {
+      logger.info(args);
+    },
+    warn(...args) {
+      logger.warn(args);
+    },
+    error(...args) {
+      logger.error(args);
+    },
+  },
   fetchAPI: {
     Request: NextRequest,
     Response: NextResponse,
   },
   context: createContext,
   plugins: [
-    // eslint-disable-next-line react-hooks/rules-of-hooks
+    // useLogger({
+    //   logFn: (eventName, args) => {
+    //     logger.debug({ eventName, args });
+    //   },
+    // }),
     useResponseCache({
       cache,
       session: () => null,
