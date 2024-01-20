@@ -4,7 +4,7 @@ import { createSchema, createYoga } from "graphql-yoga";
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-import type { Company, PrismaClient } from "@prisma/client";
+import type { Company, PrismaClient, User } from "@prisma/client";
 
 import type { Resolvers } from "@/gql/types";
 
@@ -18,6 +18,7 @@ import {
 
 export type ContextType = {
   request: NextRequest;
+  user: User | null;
 };
 
 export interface GraphQLContext extends ContextType {
@@ -27,9 +28,27 @@ export interface GraphQLContext extends ContextType {
 export async function createContext(
   defaultContext: ContextType
 ): Promise<GraphQLContext> {
+  const { request } = defaultContext;
+
+  const token = await getToken({ req: request });
+
+  let user = null;
+
+  if (token) {
+    user = await db.user.findUnique({
+      where: {
+        id: token.sub!,
+      },
+      select: {
+        companyId: true,
+      },
+    });
+  }
+
   return {
     ...defaultContext,
     db,
+    user,
   };
 }
 
@@ -61,23 +80,8 @@ const resolvers: Resolvers = {
     },
   },
   Mutation: {
-    createJob: async (_, { input }, { db, request }) => {
+    createJob: async (_, { input }, { db, user }) => {
       const { title, description } = input;
-
-      const token = await getToken({ req: request });
-
-      if (!token) {
-        throw InvalidTokenError("Please add valid token");
-      }
-
-      const user = await db.user.findUnique({
-        where: {
-          email: token.email!,
-        },
-        select: {
-          companyId: true,
-        },
-      });
 
       if (!user) {
         throw UserNotFoundError("User not found");
@@ -93,14 +97,20 @@ const resolvers: Resolvers = {
 
       return job;
     },
-    updateJob: async (_, { input }, { db }) => {
+    updateJob: async (_, { input }, { db, user }) => {
       const { description = null, title = null, id = null } = input;
+
+      if (!user) {
+        throw UserNotFoundError("User not found");
+      }
 
       if (id === null) {
         throw InvalidInputError("Please add valid id");
       }
 
-      const isJobExists = await db.job.findUnique({ where: { id } });
+      const isJobExists = await db.job.findUnique({
+        where: { id, companyId: user?.companyId },
+      });
 
       if (!isJobExists) {
         throw NotFoundError(`No Job found with id ${id}`);
@@ -116,14 +126,20 @@ const resolvers: Resolvers = {
 
       return job;
     },
-    deleteJob: async (_, { input }, { db }) => {
+    deleteJob: async (_, { input }, { db, user }) => {
       const { id = null } = input;
+
+      if (!user) {
+        throw UserNotFoundError("User not found");
+      }
 
       if (id === null) {
         throw InvalidInputError("Please add valid id");
       }
 
-      const isJobExists = await db.job.findUnique({ where: { id } });
+      const isJobExists = await db.job.findUnique({
+        where: { id, companyId: user?.companyId },
+      });
 
       if (!isJobExists) {
         throw NotFoundError(`No Job found with id ${id}`);
