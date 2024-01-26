@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import { JobList } from "@/components/JobList";
 
@@ -10,7 +11,12 @@ const HomePage = () => {
 
   return (
     <div>
-      <h1 className="title">Job Board</h1>
+      <div className="flex">
+        <h1 className="title">Job Board</h1>
+        <Link className="ml-4" href={"/jobs/new"}>
+          New Job
+        </Link>
+      </div>
       <JobList jobs={data?.data?.jobs || []} />
     </div>
   );

@@ -7,19 +7,21 @@ import { getToken } from "next-auth/jwt";
 // import { useLogger } from "@envelop/core";
 import { useResponseCache } from "@envelop/response-cache";
 import { createRedisCache } from "@envelop/response-cache-redis";
-import Redis from "ioredis";
 
 import type { Company, PrismaClient, User } from "@prisma/client";
 
 import type { Resolvers } from "@/gql/types";
 
 import { db } from "@/lib/db";
+import { invalidateOperationsCache, redis } from "@/lib/redis";
 import { logger } from "@/lib/logger";
 import {
   InvalidInputError,
   NotFoundError,
   UserNotFoundError,
 } from "@/lib/errors";
+
+import { JobsDocument } from "@/gql/graphql";
 
 export type ContextType = {
   request: NextRequest;
@@ -100,6 +102,8 @@ const resolvers: Resolvers = {
         data: { description, title, companyId: user.companyId },
       });
 
+      invalidateOperationsCache(JobsDocument);
+
       return job;
     },
     updateJob: async (_, { input }, { db, user }) => {
@@ -175,8 +179,7 @@ const schema = createSchema({
   resolvers: resolvers,
 });
 
-const redis = new Redis(process.env.REDIS_URL!);
-const cache = createRedisCache({ redis });
+export const cache = createRedisCache({ redis });
 
 const { handleRequest } = createYoga({
   graphqlEndpoint: "/api/graphql",
@@ -209,6 +212,10 @@ const { handleRequest } = createYoga({
     useResponseCache({
       cache,
       session: () => null,
+      ttlPerSchemaCoordinate: {
+        "Query.jobs": 1000 * 60 * 5,
+      },
+      // includeExtensionMetadata: false,
       // ttl: 1000 * 60 * 60 * 1,
     }),
   ],

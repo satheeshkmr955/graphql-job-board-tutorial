@@ -3,14 +3,20 @@
 import { useState } from "react";
 import { ExecutionResult } from "graphql";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
-import { useMutationGraphQL } from "@/hooks/use-graphql";
-import { CreateJobDocument, CreateJobMutation } from "@/gql/graphql";
+import { getCacheKey, useMutationGraphQL } from "@/hooks/use-graphql";
+import {
+  CreateJobDocument,
+  CreateJobMutation,
+  JobsDocument,
+} from "@/gql/graphql";
 
 const JobNewPage = () => {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const queryClient = useQueryClient();
 
   const { mutate } = useMutationGraphQL(
     CreateJobDocument,
@@ -21,6 +27,8 @@ const JobNewPage = () => {
       onSuccess: <T extends ExecutionResult<CreateJobMutation>>(data: T) => {
         const id = data.data?.job?.id;
         if (id) {
+          const queryKey = getCacheKey(JobsDocument);
+          queryClient.invalidateQueries({ queryKey: [queryKey] });
           router.push(id);
         }
       },

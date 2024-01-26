@@ -17,7 +17,12 @@ const JobIdPage = () => {
     <>
       {!isLoading && (
         <div>
-          <h1 className="title is-2">{data?.data?.job?.title}</h1>
+          <div className="flex">
+            <h1 className="title is-2">{data?.data?.job?.title}</h1>
+            <Link className="ml-4" href={"/"}>
+              Home
+            </Link>
+          </div>
           <h2 className="subtitle is-4">
             <Link href={`/companies/${data?.data?.job?.company?.id}`}>
               {data?.data?.job?.company?.name}

@@ -36,7 +36,7 @@ export function useGraphQL<TResult, TVariables>(
   variables?: TVariables extends Record<string, never> ? {} : TVariables
 ): UseQueryResult<ExecutionResult<TResult>> {
   return useQuery({
-    queryKey: [(document.definitions[0] as any).name.value, variables],
+    queryKey: [getCacheKey(document), variables],
     queryFn: () => customFetcher(document, variables),
   });
 }
@@ -47,8 +47,14 @@ export function useMutationGraphQL<TResult, TVariables>(
   mutateOptions?: UseMutationOptions
 ): UseMutationResult<ExecutionResult<TResult>> {
   return useMutation({
-    mutationKey: [(document.definitions[0] as any).name.value, variables],
+    mutationKey: [getCacheKey(document), variables],
     mutationFn: () => customFetcher(document, variables),
     ...mutateOptions,
   });
+}
+
+export function getCacheKey<TResult, TVariables>(
+  document: TypedDocumentNode<TResult, TVariables>
+) {
+  return (document.definitions[0] as any).name.value;
 }
