@@ -4,9 +4,11 @@ import { join } from "path";
 import { createSchema, createYoga } from "graphql-yoga";
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
+import DataLoader from "dataloader";
 // import { useLogger } from "@envelop/core";
 import { useResponseCache } from "@envelop/response-cache";
 import { createRedisCache } from "@envelop/response-cache-redis";
+import { useDataLoader } from "@envelop/dataloader";
 
 import type { Company, PrismaClient, User } from "@prisma/client";
 
@@ -26,7 +28,12 @@ import { JobsDocument } from "@/gql/graphql";
 export type ContextType = {
   request: NextRequest;
   user: User | null;
+  companyLoader: CompanyLoader;
 };
+
+export interface CompanyLoader {
+  load(key: string): Promise<Company>;
+}
 
 export interface GraphQLContext extends ContextType {
   db: PrismaClient;
@@ -45,9 +52,6 @@ export async function createContext(
     user = await db.user.findUnique({
       where: {
         id: token.sub!,
-      },
-      select: {
-        companyId: true,
       },
     });
   }
@@ -161,11 +165,9 @@ const resolvers: Resolvers = {
   },
   Job: {
     date: ({ createdAt }) => createdAt.toISOString(),
-    company: async ({ companyId }, {}, { db }) => {
-      const company = await db.company.findUnique({
-        where: { id: companyId },
-      });
-      return company as Company;
+    company: async ({ companyId }, {}, { companyLoader }) => {
+      const company = await companyLoader.load(companyId);
+      return company;
     },
   },
   Company: {
@@ -209,6 +211,22 @@ const { handleRequest } = createYoga({
     //     logger.debug({ eventName, args });
     //   },
     // }),
+    useDataLoader(
+      "companyLoader",
+      ({ db }: GraphQLContext) =>
+        new DataLoader(async (keys) => {
+          const companies = await db.company.findMany({
+            where: {
+              id: {
+                in: keys as [],
+              },
+            },
+          });
+          return keys.map((id) =>
+            companies.find((company) => company.id === id)
+          );
+        })
+    ),
     useResponseCache({
       cache,
       session: () => null,
