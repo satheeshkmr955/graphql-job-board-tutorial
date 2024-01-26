@@ -2,78 +2,76 @@
 
 import { graphql } from "@/gql";
 
-const getJobsWithCompany = graphql(/* GraphQL */ `
+export const JobDetails = graphql(/* GraphQL */ `
+  fragment JobDetails on Job {
+    id
+    title
+    description
+    date
+  }
+`);
+
+export const CompanyDetails = graphql(/* GraphQL */ `
+  fragment CompanyDetails on Company {
+    id
+    name
+    description
+  }
+`);
+
+export const getJobsWithCompany = graphql(/* GraphQL */ `
   query Jobs {
     jobs {
-      id
-      title
-      description
-      date
+      ...JobDetails
       company {
-        id
-        name
-        description
+        ...CompanyDetails
       }
     }
   }
 `);
 
-const getJobById = graphql(/* GraphQL */ `
+export const getJobById = graphql(/* GraphQL */ `
   query Job($id: ID!) {
     job(id: $id) {
-      date
-      id
-      title
-      description
+      ...JobDetails
       company {
-        id
-        name
-        description
+        ...CompanyDetails
       }
     }
   }
 `);
 
-const getCompanyById = graphql(/* GraphQL */ `
+export const getCompanyById = graphql(/* GraphQL */ `
   query Company($id: ID!) {
     company(id: $id) {
-      id
-      name
-      description
+      ...CompanyDetails
       jobs {
-        id
-        date
-        description
-        title
+        ...JobDetails
       }
     }
   }
 `);
 
-const createJob = graphql(/* GraphQL */ `
+export const createJob = graphql(/* GraphQL */ `
   mutation CreateJob($input: CreateJobInput!) {
     job: createJob(input: $input) {
-      id
+      ...JobDetails
     }
   }
 `);
 
-const updateJob = graphql(/* GraphQL */ `
+export const updateJob = graphql(/* GraphQL */ `
   mutation UpdateJob($input: UpdateJobInput!) {
     updateJob(input: $input) {
-      id
-      title
-      description
+      ...JobDetails
     }
   }
 `);
 
-const deleteJob = graphql(/* GraphQL */ `
+export const deleteJob = graphql(/* GraphQL */ `
   mutation DeleteJob($input: DeleteJobInput!) {
     deleteJob(input: $input) {
-      id
-      title
-      description
+      ...JobDetails
     }
   }
 `);
