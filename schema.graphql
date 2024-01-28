@@ -1,6 +1,6 @@
 type Query {
   greeting: String
-  jobs: [Job!]
+  jobs(input: JobsInput): Jobs!
   job(id: ID!): Job
   company(id: ID!): Company
 }
@@ -9,6 +9,18 @@ type Mutation {
   createJob(input: CreateJobInput!): Job
   updateJob(input: UpdateJobInput!): Job
   deleteJob(input: DeleteJobInput!): Job
+}
+
+type Pagination {
+  totalRecords: Int!
+  currentLimit: Int!
+  currentPage: Int!
+  hasNextPage: Boolean!
+}
+
+type Jobs {
+  items: [Job!]!
+  pagination: Pagination!
 }
 
 """
@@ -30,6 +42,11 @@ type Company {
   name: String!
   description: String
   jobs: [Job!]!
+}
+
+input JobsInput {
+  limit: Int
+  page: Int
 }
 
 input CreateJobInput {

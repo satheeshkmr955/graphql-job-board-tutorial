@@ -20,6 +20,9 @@ const config: CodegenConfig = {
     },
     "gql/": {
       preset: "client",
+      presetConfig: {
+        fragmentMasking: false,
+      },
     },
     "./graphql.schema.json": {
       plugins: ["introspection"],

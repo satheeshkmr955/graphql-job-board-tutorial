@@ -19,12 +19,35 @@ export const CompanyDetails = graphql(/* GraphQL */ `
   }
 `);
 
-export const getJobsWithCompany = graphql(/* GraphQL */ `
-  query Jobs {
+export const JobWithCompanyDetails = graphql(/* GraphQL */ `
+  fragment JobWithCompanyDetails on Job {
+    ...JobDetails
+    company {
+      ...CompanyDetails
+    }
+  }
+`);
+
+export const CompanyWithJobDetails = graphql(/* GraphQL */ `
+  fragment CompanyWithJobDetails on Company {
+    ...CompanyDetails
     jobs {
       ...JobDetails
-      company {
-        ...CompanyDetails
+    }
+  }
+`);
+
+export const getJobsWithCompany = graphql(/* GraphQL */ `
+  query Jobs($input: JobsInput) {
+    jobs(input: $input) {
+      items {
+        ...JobWithCompanyDetails
+      }
+      pagination {
+        totalRecords
+        currentLimit
+        currentPage
+        hasNextPage
       }
     }
   }
@@ -33,10 +56,7 @@ export const getJobsWithCompany = graphql(/* GraphQL */ `
 export const getJobById = graphql(/* GraphQL */ `
   query Job($id: ID!) {
     job(id: $id) {
-      ...JobDetails
-      company {
-        ...CompanyDetails
-      }
+      ...JobWithCompanyDetails
     }
   }
 `);
@@ -44,10 +64,7 @@ export const getJobById = graphql(/* GraphQL */ `
 export const getCompanyById = graphql(/* GraphQL */ `
   query Company($id: ID!) {
     company(id: $id) {
-      ...CompanyDetails
-      jobs {
-        ...JobDetails
-      }
+      ...CompanyWithJobDetails
     }
   }
 `);

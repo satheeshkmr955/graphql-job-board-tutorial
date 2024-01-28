@@ -7,7 +7,7 @@ import { JobsDocument } from "@/gql/graphql";
 import { useGraphQL } from "@/hooks/use-graphql";
 
 const HomePage = () => {
-  const { data } = useGraphQL(JobsDocument);
+  const { data } = useGraphQL(JobsDocument, { input: { limit: 20, page: 0 } });
 
   return (
     <div>
@@ -17,7 +17,7 @@ const HomePage = () => {
           New Job
         </Link>
       </div>
-      <JobList jobs={data?.data?.jobs || []} />
+      <JobList jobs={data?.data?.jobs?.items || []} />
     </div>
   );
 };

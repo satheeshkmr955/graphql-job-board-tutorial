@@ -70,7 +70,42 @@ const typeDefs = readFileSync(join(process.cwd(), "schema.graphql"), {
 const resolvers: Resolvers = {
   Query: {
     greeting: () => "Hello World",
-    jobs: async (_, {}, { db }) => await db.job.findMany(),
+    jobs: async (_, { input }, { db }) => {
+      const pagination = {
+        totalRecords: 0,
+        currentLimit: 0,
+        currentPage: 0,
+        hasNextPage: false,
+      };
+
+      let defaultLimit = 20;
+      let defaultPage = 0;
+
+      let { limit, page } = input || {};
+      if (typeof limit === "number") {
+        defaultLimit = limit;
+      }
+      if (typeof page === "number") {
+        defaultPage = page;
+      }
+
+      pagination["totalRecords"] = await db.job.count();
+      pagination["currentLimit"] = defaultLimit;
+      pagination["currentPage"] = defaultPage;
+
+      const jobs = await db.job.findMany({
+        skip: defaultPage * defaultLimit,
+        take: defaultLimit + 1,
+        orderBy: { createdAt: "desc" },
+      });
+
+      if (jobs.length > defaultLimit) {
+        pagination["hasNextPage"] = true;
+        jobs.splice(-1);
+      }
+
+      return { items: jobs, pagination };
+    },
     job: async (_, { id }, { db }) => {
       const job = await db.job.findUnique({ where: { id } });
 
