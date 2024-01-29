@@ -1,0 +1,3 @@
+- [Using React Query with GraphQL Subscriptions](https://github.com/TanStack/query/discussions/1506#discussioncomment-1210945)
+- [WebSockets for subscriptions Next.js](https://the-guild.dev/graphql/yoga-server/docs/integrations/integration-with-nextjs#websockets-for-subscriptions)
+- [GraphQL over WebSocket Protocol](https://the-guild.dev/graphql/yoga-server/docs/features/subscriptions#graphql-over-websocket-protocol-via-graphql-ws)
