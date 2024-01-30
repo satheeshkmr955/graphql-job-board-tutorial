@@ -34,6 +34,7 @@ interface CustomerExecutionArgs extends ExecutionArgs {
 
 export type ContextType = {
   request: NextRequest;
+  req?: NextRequest;
   user: User | null;
   companyLoader: CompanyLoader;
 };
@@ -56,9 +57,11 @@ const app = next({ dev, hostname, port });
 export async function createContext(
   defaultContext: ContextType
 ): Promise<GraphQLContext> {
-  const { request } = defaultContext;
+  const { request, req } = defaultContext;
 
-  const token = await getToken({ req: request });
+  const token = await getToken({
+    req: request ? request : req!,
+  });
 
   let user = null;
 
