@@ -6,23 +6,20 @@ import { useServer } from "graphql-ws/lib/use/ws";
 import { parse, UrlWithParsedQuery } from "url";
 import next from "next";
 import { join } from "path";
-import { createSchema, createYoga, createPubSub } from "graphql-yoga";
-import { NextRequest, NextResponse } from "next/server";
+import { createSchema, createYoga } from "graphql-yoga";
+import { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import DataLoader from "dataloader";
 // import { useLogger } from "@envelop/core";
 import { useResponseCache } from "@envelop/response-cache";
 import { createRedisCache } from "@envelop/response-cache-redis";
 import { useDataLoader } from "@envelop/dataloader";
-import { createRedisEventTarget } from "@graphql-yoga/redis-event-target";
-// import SuperJSON from "superjson";
 
 import type { ExecutionArgs } from "graphql";
 import type { Company, PrismaClient, User } from "@prisma/client";
 
 import { db } from "@/lib/db";
 import { redis } from "@/lib/redis";
-import { publishClientRedis, subscribeClientRedis } from "@/lib/pubsub";
 import { logger } from "@/lib/logger";
 
 import { RootResolvers } from "./_resolvers";
@@ -88,13 +85,6 @@ const schema = createSchema({
   typeDefs: typeDefs,
   resolvers: RootResolvers,
 });
-
-const eventTarget = createRedisEventTarget({
-  publishClient: publishClientRedis,
-  subscribeClient: subscribeClientRedis,
-  // serializer: SuperJSON,
-});
-export const pubSub = createPubSub({ eventTarget });
 
 export const cache = createRedisCache({ redis });
 

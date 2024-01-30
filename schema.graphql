@@ -9,11 +9,13 @@ type Mutation {
   createJob(input: CreateJobInput!): Job
   updateJob(input: UpdateJobInput!): Job
   deleteJob(input: DeleteJobInput!): Job
+  broadcastRandomNumber: Boolean
 }
 
 type Subscription {
   clock: String!
   ping: String!
+  randomNumber: Float!
 }
 
 type Pagination {
