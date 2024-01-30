@@ -15,7 +15,7 @@ import { useResponseCache } from "@envelop/response-cache";
 import { createRedisCache } from "@envelop/response-cache-redis";
 import { useDataLoader } from "@envelop/dataloader";
 import { createRedisEventTarget } from "@graphql-yoga/redis-event-target";
-import SuperJSON from "superjson";
+// import SuperJSON from "superjson";
 
 import type { ExecutionArgs } from "graphql";
 import type { Company, PrismaClient, User } from "@prisma/client";
@@ -92,7 +92,7 @@ const schema = createSchema({
 const eventTarget = createRedisEventTarget({
   publishClient: publishClientRedis,
   subscribeClient: subscribeClientRedis,
-  serializer: SuperJSON,
+  // serializer: SuperJSON,
 });
 export const pubSub = createPubSub({ eventTarget });
 

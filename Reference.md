@@ -2,3 +2,4 @@
 - [WebSockets for subscriptions Next.js](https://the-guild.dev/graphql/yoga-server/docs/integrations/integration-with-nextjs#websockets-for-subscriptions)
 - [GraphQL over WebSocket Protocol](https://the-guild.dev/graphql/yoga-server/docs/features/subscriptions#graphql-over-websocket-protocol-via-graphql-ws)
 - [How to set up TypeScript with Node.js](https://blog.logrocket.com/how-to-set-up-node-typescript-express/)
+- [Typescript path aliases not resolved correctly at runtime](https://stackoverflow.com/questions/60067281/typescript-path-aliases-not-resolved-correctly-at-runtime)
