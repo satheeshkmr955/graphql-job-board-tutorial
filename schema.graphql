@@ -11,6 +11,11 @@ type Mutation {
   deleteJob(input: DeleteJobInput!): Job
 }
 
+type Subscription {
+  clock: String!
+  ping: String!
+}
+
 type Pagination {
   totalRecords: Int!
   currentLimit: Int!
