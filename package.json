@@ -8,6 +8,7 @@
   "scripts": {
     "dev-all": "concurrently \"npm:codegen-watch\" \"next dev\"",
     "dev": "next dev",
+    "dev-tsnode": "nodemon app/api/graphql/server.ts",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
