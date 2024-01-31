@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { readFileSync } from "fs";
 import { join } from "path";
-import { createSchema, createYoga, createPubSub } from "graphql-yoga";
+import { createSchema, createYoga } from "graphql-yoga";
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import DataLoader from "dataloader";
@@ -9,14 +9,11 @@ import DataLoader from "dataloader";
 import { useResponseCache } from "@envelop/response-cache";
 import { createRedisCache } from "@envelop/response-cache-redis";
 import { useDataLoader } from "@envelop/dataloader";
-import { createRedisEventTarget } from "@graphql-yoga/redis-event-target";
-import SuperJSON from "superjson";
 
 import type { Company, PrismaClient, User } from "@prisma/client";
 
 import { db } from "@/lib/db";
 import { redis } from "@/lib/redis";
-import { publishClientRedis, subscribeClientRedis } from "@/lib/pubsub";
 import { logger } from "@/lib/logger";
 
 import { RootResolvers } from "./_resolvers";
@@ -34,6 +31,7 @@ export interface CompanyLoader {
 export interface GraphQLContext extends ContextType {
   db: PrismaClient;
 }
+const graphqlEndpoint: string = "/api/graphql";
 
 export async function createContext(
   defaultContext: ContextType
@@ -68,17 +66,10 @@ const schema = createSchema({
   resolvers: RootResolvers,
 });
 
-const eventTarget = createRedisEventTarget({
-  publishClient: publishClientRedis,
-  subscribeClient: subscribeClientRedis,
-  serializer: SuperJSON,
-});
-export const pubSub = createPubSub({ eventTarget });
-
 export const cache = createRedisCache({ redis });
 
 const { handleRequest } = createYoga({
-  graphqlEndpoint: "/api/graphql",
+  graphqlEndpoint,
   schema,
   logging: {
     debug(...args) {
