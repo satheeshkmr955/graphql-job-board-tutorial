@@ -47,7 +47,8 @@ export interface GraphQLContext extends ContextType {
 const dev: boolean = process.env.NODE_ENV !== "production";
 const hostname: string = "localhost";
 const port: number = 3000;
-const graphqlEndpoint: string = "/api/graphql";
+const graphqlEndpoint: string = "/subscription";
+const webpackEndpoint: string = "/_next/webpack-hmr";
 
 const app = next({ dev, hostname, port });
 
@@ -157,6 +158,11 @@ async function start(
     req: IncomingMessage,
     res: ServerResponse,
     parsedUrl: UrlWithParsedQuery
+  ) => Promise<void>,
+  handleUpgrade?: (
+    req: IncomingMessage,
+    socket: any,
+    head: any
   ) => Promise<void>
 ): Promise<() => Promise<void>> {
   // create http server
@@ -223,11 +229,22 @@ async function start(
     wsServer
   );
 
-  await new Promise<void>((resolve, reject) =>
-    server.listen(port, () => {
-      console.log(`HTTP server running on http://${hostname}:${port}`);
-    })
-  );
+  await new Promise<void>((resolve, reject) => {
+    server.on("upgrade", (req: IncomingMessage, socket, head) => {
+      const url = parse(req.url!, true);
+
+      if (!handleUpgrade) {
+        throw new Error(`Cannot handle since handleUpgrade is not implemented`);
+      }
+      if (url.pathname!.startsWith(webpackEndpoint)) {
+        handleUpgrade(req, socket, head);
+      }
+    });
+
+    return server.listen(port, () => {
+      resolve();
+    });
+  });
 
   return () =>
     new Promise<void>((resolve, reject) =>
@@ -238,13 +255,18 @@ async function start(
 // dont start the next.js app when testing the server
 if (process.env.NODE_ENV !== "test") {
   (async () => {
-    await app.prepare();
-    await start(port, app.getRequestHandler());
-    console.log(`
-  > App started!
-    HTTP server running on http://${hostname}:${port}
-    GraphQL WebSocket server running on ws://${hostname}:${port}${graphqlEndpoint}
-  `);
+    try {
+      await app.prepare();
+      await start(port, app.getRequestHandler(), app.getUpgradeHandler());
+      console.log(
+        `App started!
+HTTP server running on http://${hostname}:${port}
+GraphQL WebSocket server running on ws://${hostname}:${port}${graphqlEndpoint}
+`
+      );
+    } catch (error) {
+      console.error(error);
+    }
   })();
 }
 

@@ -37,7 +37,7 @@ export function useGraphQL<TResult, TVariables>(
 ): UseQueryResult<ExecutionResult<TResult>> {
   return useQuery({
     queryKey: [getCacheKey(document), variables],
-    queryFn: () => customFetcher(document, variables),
+    queryFn: () => customFetcher(document, variables!),
   });
 }
 

@@ -92,3 +92,15 @@ export const deleteJob = graphql(/* GraphQL */ `
     }
   }
 `);
+
+export const subscriptionRandomNumber = graphql(/* GraphQL */ `
+  subscription SubscriptionRandomNumber {
+    randomNumber
+  }
+`);
+
+export const subscriptionPing = graphql(/* GraphQL */ `
+  subscription SubscriptionPing {
+    ping
+  }
+`);
